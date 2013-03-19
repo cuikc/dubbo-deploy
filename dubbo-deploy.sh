@@ -40,3 +40,36 @@ else
 	echo "start tar"
 	tar -xf "$3" -C "$DUBBO_PATH""$SERVICE_PATH";
 fi
+
+#################################
+# change config file
+#################################
+
+if [[ -e "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties ]]
+then
+	echo "dubbo.properties is here";
+	PORT_CONF='';
+	PORT_CONF=`egrep -c '^dubbo.protocol.port' "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties`;
+	if [[ "$PORT_CONF" == 0 ]]         #PORT_CONF没有找到port设置。
+	then
+		echo "1"
+		echo "$PORT_CONF";
+	else
+		echo "2"
+		echo "$PORT_CONF";
+		echo "$2";
+		sed -i "s/^dubbo\.protocol\.port=.*/dubbo.protocol.port="$2"/" "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
+	fi
+else
+	echo "there is no dubbo.properties";
+fi
+
+
+
+
+
+
+
+
+
+

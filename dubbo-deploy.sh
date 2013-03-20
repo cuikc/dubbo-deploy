@@ -54,7 +54,8 @@ then
 	then
 		echo "1"
 		echo "$PORT_CONF";
-	else
+		sed -i '$a\dubbo.protocol.port='"${2}" "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
+	else					#如果有一个或多个port的设置，则替换为参数指定的端口号。
 		echo "2"
 		echo "$PORT_CONF";
 		echo "$2";

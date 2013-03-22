@@ -6,9 +6,9 @@ DUBBO_PATH="/ROOT/www/dubbo/"
 # Useage
 #################################
 
-if [[ -z $1 || -z $2 || -z $3 ]]
+if [[ -z $1 || -z $2 || -z $3 || -z $4 ]]
 then
-	echo "Useage:./dubbo-deploy.sh \"service-name\" \"port\" \"service.tar.gz\"";
+	echo "Useage:./dubbo-deploy.sh \"service-name\" \"port\" \"service.tar.gz\" \"owner_name\"";
 	exit 1;
 fi
 #################################
@@ -48,6 +48,7 @@ fi
 if [[ -e "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties ]]
 then
 	echo "dubbo.properties is here";
+#########################################  修改端口设置
 	PORT_CONF='';
 	PORT_CONF=`egrep -c '^dubbo.protocol.port' "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties`;
 	if [[ "$PORT_CONF" == 0 ]]		#PORT_CONF没有找到port设置，则在配置文件末尾添加一行端口参数。
@@ -61,9 +62,9 @@ then
 		echo "$2";
 		sed -i "s/^dubbo\.protocol\.port=.*/dubbo.protocol.port="$2"/" "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
 	fi
-	
+#########################################  修改服务名设置
 	NAME_CONF='';
-	NAME_CONF=`egrep -c '^dubbo.application.name=' "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties`
+	NAME_CONF=`egrep -c '^dubbo.application.name=' "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties`;
 	if [[ "$NAME_CONF" == 0 ]]		#如果没有service-name设置，则在配置文件末尾添加一行service-name参数。
 	then
 		echo "insert";
@@ -77,6 +78,37 @@ then
 		uniq "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties > "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties-uniq;
 		mv "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties-uniq "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
 	fi
+##########################################  修改日志存储位置设置
+	LOG_CONF='';
+	LOG_CONF=`egrep -c '^dubbo.log4j.file=' "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties`;
+	if [[ "$LOG_CONF" == 0 ]]		#如果没有日志设置，则添加日志设置。
+	then
+		echo "insert";
+		echo "$LOG_CONF";
+		echo "$1";
+		sed -i '$a\dubbo.log4j.file=/ROOT/logs/dubbo/'"${1}"'/'"${1}"'-provider.log' "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
+	else					#如果有一个或多个日志设置，则替换为参数指定设置。
+		echo "change";
+		echo "$LOG_CONF";
+		echo "$1";
+		sed -i "s:^dubbo\.log4j\.file=.*:dubbo.log4j.file=/ROOT/logs/dubbo/"${1}"/"${1}"-provider.log:" "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
+	fi
+##########################################  修改服务所有者设置
+	SERVICE_OWNER='';
+	SERVICE_OWNER=`egrep -c '^dubbo.application.owner=' "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties`;
+	if [[ "$SERVICE_OWNER" == 0 ]]
+	then
+		echo "insert";
+		echo "$SERVICE_OWNER";
+		echo "$4";
+		sed -i '$a\dubbo.application.owner='"${4}" "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
+	else
+		echo "change";
+		echo "$SERVICE_OWNER";
+		echo "$4";
+		sed -i "s/dubbo\.application\.owner=.*/dubbo.application.owner="${4}"/" "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
+	fi
+	
 else
 	echo "there is no dubbo.properties";
 fi

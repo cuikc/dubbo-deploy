@@ -75,8 +75,6 @@ then
 		echo "$NAME_CONF";
 		echo "$1";
 		sed -i "s/^dubbo\.application\.name=.*/dubbo.application.name="$1"/" "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
-		uniq "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties > "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties-uniq;
-		mv "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties-uniq "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
 	fi
 ##########################################  修改日志存储位置设置
 	LOG_CONF='';
@@ -93,6 +91,14 @@ then
 		echo "$1";
 		sed -i "s:^dubbo\.log4j\.file=.*:dubbo.log4j.file=/ROOT/logs/dubbo/"${1}"/"${1}"-provider.log:" "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
 	fi
+
+	if [[ ! -e /ROOT/logs/dubbo/"${1}" ]]
+	then
+		echo "There is no log dir,so make it.";
+		mkdir -p /ROOT/logs/dubbo/"${1}";
+	else
+		echo "The log dir is present,no need to make it.";
+	fi
 ##########################################  修改服务所有者设置
 	SERVICE_OWNER='';
 	SERVICE_OWNER=`egrep -c '^dubbo.application.owner=' "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties`;
@@ -108,7 +114,14 @@ then
 		echo "$4";
 		sed -i "s/dubbo\.application\.owner=.*/dubbo.application.owner="${4}"/" "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;
 	fi
-	
+##########################################  整理配置文件
+	echo "delete #";		#处理删除注释行
+	sed -i "s/^#.*//" "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;		#处理删除注释行
+	sed -i '/^$/'d "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;		#删除空行
+	sort -t "." -k 2 "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties | uniq > "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties-uniq;	#排序删去重复
+	mv "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties-uniq "$DUBBO_PATH""$SERVICE_PATH"/conf/dubbo.properties;		#将去重之后的文件拷为配置文件
+	chown -R webmaster:webmaster "$DUBBO_PATH""$SERVICE_PATH";
+	chown -R webmaster:webmaster /ROOT/logs/dubbo/"${1}";
 else
 	echo "there is no dubbo.properties";
 fi
@@ -120,7 +133,7 @@ fi
 #check the prot is useing or not
 ###################################
 
-PORT_STATUS=`netstat -plnut | awk '{print $4}' | awk -F ":" '{print $2}' | \
+PORT_STATUS=`netstat -lnut | awk '{print $4}' | awk -F ":" '{print $2}' | \
 while read PORTS 
 do
 	#echo $PORTS;

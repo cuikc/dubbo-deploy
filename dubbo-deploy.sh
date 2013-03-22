@@ -155,7 +155,15 @@ then
 	echo "The Port is in using by someone,Please choose another one,Thanks.";
 	exit;
 fi
+
 echo "check port complete";
+
+####################################
+
+echo "Start the ${1} provider NOW!";
+
+su - webmaster -c "${DUBBO_PATH}${SERVICE_PATH}/bin/start.sh";
+
 
 
 

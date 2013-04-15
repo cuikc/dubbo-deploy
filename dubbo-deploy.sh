@@ -8,10 +8,18 @@ DUBBO_PATH="/ROOT/www/dubbo/"
 
 if [[ -z $1 || -z $2 || -z $3 || -z $4 ]]
 then
-	echo "Useage:./dubbo-deploy.sh \"service-name\" \"port\" \"service.tar.gz\" \"owner_name\"";
+	echo "Useage:./dubbo-deploy.sh service-name port service.tar.gz owner_name";
 	exit 1;
 fi
 #################################
+
+DEPOLY_USER=`whoami`;
+
+if [[ "$DEPOLY_USER" != "root" || "$DEPOLY_USER" != "webmaster" ]]
+then
+	echo "Please run this script as root or webmaster!";
+	exit 1;
+fi
 
 
 SERVICE_PATH="$1_$2";
@@ -164,11 +172,21 @@ echo "Port check is completed.";
 
 ####################################
 
-#echo "Start the ${1} provider NOW!";
+DEPOLY_USER=`whoami`;
 
-#su - webmaster -c "${DUBBO_PATH}${SERVICE_PATH}/bin/start.sh";
+echo "Running as $DEPOLY_USER,Start the ${1} provider NOW!";
 
-
+if [[ "$DEPOLY_USER" == "root" ]]
+then
+	echo "Running as $DEPOLY_USER,Start the ${1} provider NOW!";
+	su - webmaster -c "${DUBBO_PATH}${SERVICE_PATH}/bin/start.sh";
+else
+	if [[ "$DEPOLY_USER" == "webmaster" ]]
+	then
+		echo "Running as $DEPOLY_USER,Start the ${1} provider NOW!";
+		"${DUBBO_PATH}${SERVICE_PATH}/bin/start.sh";
+	fi
+fi
 
 
 

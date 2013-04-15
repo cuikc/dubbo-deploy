@@ -35,8 +35,51 @@ then
 	mkdir -p "$DUBBO_PATH""$SERVICE_PATH";
 	ls -al "$DUBBO_PATH";
 else
-	echo "Service file dir is here,no need to make it.";
-	ls -al "$DUBBO_PATH";
+	echo "Service file dir is here,are you want to update this service?";
+	read -p "Update this service ( y or n ):" UPDATE_SERVICE;
+	case "$UPDATE_SERVICE" in
+		y)				#如果选择升级更新现有服务，则判断用户之后，停止原来的服务后备份原有目录，并新建服务目录。	
+			DEPOLY_USER=`whoami`;
+			if [[ "$DEPOLY_USER" == "root" ]]
+			then
+			        su - webmaster -c "${DUBBO_PATH}${SERVICE_PATH}/bin/stop.sh";
+				sleep 15;
+				if [[ ! -d "${DUBBO_PATH}${SERVICE_PATH}-bak" ]]
+				then
+					su - webmaster -c "mv ${DUBBO_PATH}${SERVICE_PATH} ${DUBBO_PATH}${SERVICE_PATH}-bak";
+				else
+					rm -rf "${DUBBO_PATH}${SERVICE_PATH}-bak";
+					su - webmaster -c "mv ${DUBBO_PATH}${SERVICE_PATH} ${DUBBO_PATH}${SERVICE_PATH}-bak";
+					mkdir -p "$DUBBO_PATH""$SERVICE_PATH";
+					ls -al "$DUBBO_PATH";
+				fi
+			else
+			        if [[ "$DEPOLY_USER" == "webmaster" ]]
+		        	then
+					/bin/sh ${DUBBO_PATH}${SERVICE_PATH}/bin/stop.sh;
+					sleep 15;
+	                                if [[ ! -d "${DUBBO_PATH}${SERVICE_PATH}-bak" ]]
+                                	then
+                                        	mv ${DUBBO_PATH}${SERVICE_PATH} ${DUBBO_PATH}${SERVICE_PATH}-bak;
+                                	else
+                                        	rm -rf "${DUBBO_PATH}${SERVICE_PATH}-bak";
+                                        	mv ${DUBBO_PATH}${SERVICE_PATH} ${DUBBO_PATH}${SERVICE_PATH}-bak;
+                                       		mkdir -p "$DUBBO_PATH""$SERVICE_PATH";
+                                        	ls -al "$DUBBO_PATH";
+                                	fi
+			        fi
+			fi
+			;;
+		n)
+			echo "Please make sure the old files is not in use,then run this script again,Thansk!"
+			exit 1;
+			;;
+		*)
+			echo "What do you really want? I could do nothing,make it yourself or run this script again,Thanks!";
+			;;
+	esac
+	
+	
 fi
 #################################
 
@@ -184,7 +227,7 @@ else
 	if [[ "$DEPOLY_USER" == "webmaster" ]]
 	then
 		echo "Running as $DEPOLY_USER,Start the ${1} provider NOW!";
-		"${DUBBO_PATH}${SERVICE_PATH}/bin/start.sh";
+		/bin/sh ${DUBBO_PATH}${SERVICE_PATH}/bin/start.sh;
 	fi
 fi
 

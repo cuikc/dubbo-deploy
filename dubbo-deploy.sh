@@ -14,13 +14,16 @@ fi
 #################################
 
 DEPOLY_USER=`whoami`;
-
-if [[ "$DEPOLY_USER" != "root" || "$DEPOLY_USER" != "webmaster" ]]
-then
-	echo "Please run this script as root or webmaster!";
-	exit 1;
-fi
-
+case $DEPOLY_USER in
+        root)
+                ;;
+        webmaster)
+                ;;
+        *)
+                echo "Please run this script as root or webmaster!";
+                exit 1;
+                ;;
+esac
 
 SERVICE_PATH="$1_$2";
 #echo "$SERVICE_PATH";
@@ -43,13 +46,20 @@ else
 			if [[ "$DEPOLY_USER" == "root" ]]
 			then
 			        su - webmaster -c "${DUBBO_PATH}${SERVICE_PATH}/bin/stop.sh";
-				sleep 15;
+				sleep 10;
 				if [[ ! -d "${DUBBO_PATH}${SERVICE_PATH}-bak" ]]
 				then
+					echo "Backup the old file...";
 					su - webmaster -c "mv ${DUBBO_PATH}${SERVICE_PATH} ${DUBBO_PATH}${SERVICE_PATH}-bak";
+					echo "Making serivce file dir...";
+					mkdir -p "$DUBBO_PATH""$SERVICE_PATH";
+					ls -al "$DUBBO_PATH";
 				else
+					echo "Delete the very old file...";
 					rm -rf "${DUBBO_PATH}${SERVICE_PATH}-bak";
+					echo "Backup the old file...";
 					su - webmaster -c "mv ${DUBBO_PATH}${SERVICE_PATH} ${DUBBO_PATH}${SERVICE_PATH}-bak";
+					echo "Making serivce file dir...";
 					mkdir -p "$DUBBO_PATH""$SERVICE_PATH";
 					ls -al "$DUBBO_PATH";
 				fi
@@ -57,13 +67,20 @@ else
 			        if [[ "$DEPOLY_USER" == "webmaster" ]]
 		        	then
 					/bin/sh ${DUBBO_PATH}${SERVICE_PATH}/bin/stop.sh;
-					sleep 15;
+					sleep 10;
 	                                if [[ ! -d "${DUBBO_PATH}${SERVICE_PATH}-bak" ]]
                                 	then
+						echo "Backup the old file...";
                                         	mv ${DUBBO_PATH}${SERVICE_PATH} ${DUBBO_PATH}${SERVICE_PATH}-bak;
+						echo "Making serivce file dir...";
+						mkdir -p "$DUBBO_PATH""$SERVICE_PATH";
+						ls -al "$DUBBO_PATH";
                                 	else
+						echo "Delete the very old file...";
                                         	rm -rf "${DUBBO_PATH}${SERVICE_PATH}-bak";
+						echo "Backup the old file...";
                                         	mv ${DUBBO_PATH}${SERVICE_PATH} ${DUBBO_PATH}${SERVICE_PATH}-bak;
+						echo "Making serivce file dir.";
                                        		mkdir -p "$DUBBO_PATH""$SERVICE_PATH";
                                         	ls -al "$DUBBO_PATH";
                                 	fi
